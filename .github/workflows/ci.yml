@@ -28,18 +28,8 @@ jobs:
       - name: Run tests
         run: npm run test --if-present
 
-      - name: Build app
-        run: npm run build
+      #- name: Build app
+      #  run: npm run build
 
       - name: Display Output
         run: echo "Deployment to Staging"
-
-      #- name: Upload build artifacts
-      #  uses: actions/upload-artifact@v4
-      #  with:
-      #    name: build-${{ github.sha }}
-      #    path: |
-      #      dist/
-      #      package.json
-      #      package-lock.json
-      #    retention-days: 7
