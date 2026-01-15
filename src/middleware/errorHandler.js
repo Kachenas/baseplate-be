@@ -1,11 +1,12 @@
 const { ApiError } = require('../utils/ApiError');
 const { logger } = require('../utils/logger');
 const { env } = require('../config/env');
+const { Request, Response, NextFunction } = require('express');
 
 /**
  * Convert non-ApiError to ApiError
  */
-const errorConverter = (err, req, res, next) => {
+const errorConverter = (/** @type {Error & {statusCode?: number}} */ err, /** @type {Request} */ _req, /** @type {Response} */ _res, /** @type {NextFunction} */ next) => {
   let error = err;
 
   if (!(error instanceof ApiError)) {
@@ -20,7 +21,7 @@ const errorConverter = (err, req, res, next) => {
 /**
  * Global error handler
  */
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (/** @type {ApiError} */ err, /** @type {Request} */ req, /** @type {Response} */ res, /** @type {NextFunction} */ _next) => {
   const { statusCode, message, isOperational, stack } = err;
 
   // Log error
@@ -48,7 +49,7 @@ const errorHandler = (err, req, res, next) => {
 /**
  * Handle 404 Not Found
  */
-const notFoundHandler = (req, res, next) => {
+const notFoundHandler = (/** @type {Request} */ req, /** @type {Response} */ _res, /** @type {NextFunction} */ next) => {
   next(ApiError.notFound(`Route ${req.originalUrl} not found`));
 };
 

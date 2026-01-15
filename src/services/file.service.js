@@ -23,9 +23,9 @@ const generateS3Key = (userId, filename) => {
 /**
  * Generate a presigned URL for uploading a file to S3
  * @param {string} userId
- * @param {Object} fileData
+ * @param {{filename: string, contentType: string, size?: number}} fileData
  */
-const getPresignedUploadUrl = async (userId, { filename, contentType, size }) => {
+const getPresignedUploadUrl = async (userId, { filename, contentType }) => {
   const key = generateS3Key(userId, filename);
 
   const command = new PutObjectCommand({
@@ -48,11 +48,11 @@ const getPresignedUploadUrl = async (userId, { filename, contentType, size }) =>
 /**
  * Confirm file upload after successful S3 upload
  * @param {string} userId
- * @param {Object} fileData
+ * @param {{key: string, filename: string, size: number}} fileData
  */
 const confirmUpload = async (userId, { key, filename, size }) => {
   // Extract content type from key extension
-  const ext = key.split('.').pop().toLowerCase();
+  const ext = (key.split('.').pop() || '').toLowerCase();
   const mimeTypes = {
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
@@ -68,7 +68,7 @@ const confirmUpload = async (userId, { key, filename, size }) => {
     csv: 'text/csv',
   };
 
-  const mimetype = mimeTypes[ext] || 'application/octet-stream';
+  const mimetype = mimeTypes[/** @type {keyof typeof mimeTypes} */ (ext)] || 'application/octet-stream';
 
   const file = await File.create({
     userId,
@@ -96,13 +96,13 @@ const getPresignedDownloadUrl = async (userId, fileId) => {
   }
 
   // Check ownership unless file is public
-  if (!file.isPublic && file.userId.toString() !== userId) {
+  if (!file.isPublic && file.userId?.toString() !== userId) {
     throw ApiError.forbidden('Access denied');
   }
 
   const command = new GetObjectCommand({
-    Bucket: file.bucket,
-    Key: file.key,
+    Bucket: /** @type {string} */ (file.bucket),
+    Key: /** @type {string} */ (file.key),
   });
 
   const downloadUrl = await getSignedUrl(s3Client, command, {
@@ -128,14 +128,14 @@ const deleteFile = async (userId, fileId) => {
     throw ApiError.notFound('File not found');
   }
 
-  if (file.userId.toString() !== userId) {
+  if (file.userId?.toString() !== userId) {
     throw ApiError.forbidden('Access denied');
   }
 
   // Delete from S3
   const command = new DeleteObjectCommand({
-    Bucket: file.bucket,
-    Key: file.key,
+    Bucket: /** @type {string} */ (file.bucket),
+    Key: /** @type {string} */ (file.key),
   });
 
   await s3Client.send(command);
@@ -149,7 +149,7 @@ const deleteFile = async (userId, fileId) => {
 /**
  * Get user files
  * @param {string} userId
- * @param {Object} options
+ * @param {{page?: number, limit?: number, sort?: string}} options
  */
 const getUserFiles = async (userId, options = {}) => {
   const { page = 1, limit = 20, sort = '-createdAt' } = options;

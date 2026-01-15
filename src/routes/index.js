@@ -13,7 +13,7 @@ router.get("/health", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
-console.log("sample here");
+
 // API routes
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
