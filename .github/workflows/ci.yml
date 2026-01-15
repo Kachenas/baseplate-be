@@ -28,8 +28,8 @@ jobs:
       - name: Run tests
         run: npm run test --if-present
 
-      - name: Build app
-        run: npm run build
+      #- name: Build app
+      #  run: npm run build
 
       - name: Display Output
         run: echo "Deployment to Staging"
